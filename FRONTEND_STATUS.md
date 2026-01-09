@@ -96,6 +96,14 @@ Frontend desenvolvido em **Next.js 14** com **TypeScript**, **Tailwind CSS** e *
    - `update()` - PATCH /members/:id
    - `delete()` - DELETE /members/:id
 
+6. **`services/users.service.ts`** - Usuários
+   - `getAll()` - GET /users
+   - `getById()` - GET /users/:id
+   - `create()` - POST /users
+   - `update()` - PATCH /users/:id
+   - `delete()` - DELETE /users/:id
+   - `toggleStatus()` - PATCH /users/:id (ativa/desativa)
+
 5. **`services/finance.service.ts`** - Financeiro
    - **Caixa:**
      - `getAllCashFlows()` - GET /cash-flows
@@ -153,20 +161,35 @@ Frontend desenvolvido em **Next.js 14** com **TypeScript**, **Tailwind CSS** e *
 As seguintes rotas foram **criadas no sistema de roteamento** mas ainda precisam de implementação completa:
 
 1. **Membros** (`app/(dashboard)/members/page.tsx`)
-   - ⚠️ **NÃO CRIADA** - Precisa criar
-   - Funcionalidades esperadas:
-     - Listagem em tabela
-     - Busca/filtro
-     - Botão "Novo Membro"
-     - Modal de criação/edição
-     - Ações: editar, deletar
+   - ✅ **IMPLEMENTADA E FUNCIONANDO**
+   - Funcionalidades implementadas:
+     - Listagem de membros em tabela ordenada alfabeticamente
+     - Filtros funcionais: Nome, Status (Ativo/Inativo), Telefone ⭐
+     - Badges de status (verde para Ativo, cinza para Inativo)
+     - Modal de criação com validação Zod (nome, telefone, email, CPF, data nascimento)
+     - Modal de edição (mesmo formulário reutilizável)
+     - Exclusão com confirmação (soft delete)
+     - RBAC completo: admin e secretary podem editar, leader e finance só visualizam ⭐
+     - Empty states diferenciados (sem dados vs filtros sem resultado)
+     - Botão "Cadastrar primeiro membro" quando vazio
+     - Toast notifications com Sonner
+     - Integração completa com members.service.ts
 
 2. **Departamentos** (`app/(dashboard)/departments/page.tsx`)
-   - ⚠️ **NÃO CRIADA** - Precisa criar
-   - Funcionalidades esperadas:
-     - Listagem com cards
-     - CRUD completo
-     - Associação com funções
+   - ✅ **IMPLEMENTADA E FUNCIONANDO**
+   - Funcionalidades implementadas:
+     - Listagem de departamentos em tabela ordenada alfabetéticamente
+     - Filtros funcionais: Nome, Status (Ativo/Inativo) ⭐
+     - Badges de status (verde para Ativo, cinza para Inativo)
+     - Modal de criação com validação Zod (nome obrigatório, descrição opcional)
+     - Modal de edição (mesmo formulário reutilizável)
+     - Exclusão com confirmação (soft delete)
+     - RBAC completo: admin e secretary podem editar, leader e finance só visualizam ⭐
+     - Truncate em descrição longa na tabela
+     - Empty states diferenciados (sem dados vs filtros sem resultado)
+     - Botão "Cadastrar primeiro departamento" quando vazio
+     - Toast notifications com Sonner
+     - Integração completa com departments.service.ts
 
 3. **Financeiro - Fluxo de Caixa** (`app/(dashboard)/finances/cash-flows/page.tsx`)
    - ✅ **IMPLEMENTADA E FUNCIONANDO**
@@ -210,20 +233,37 @@ As seguintes rotas foram **criadas no sistema de roteamento** mas ainda precisam
      - Toast notifications com Sonner
 
 6. **Relatórios** (`app/(dashboard)/reports/page.tsx`)
-   - ⚠️ **NÃO CRIADA** - Precisa criar
-   - Funcionalidades esperadas:
-     - Seleção de período
-     - Múltiplos tipos de relatório
-     - Gráficos (opcional)
-     - Exportação (futuro)
+   - ✅ **IMPLEMENTADA E FUNCIONANDO**
+   - Funcionalidades implementadas:
+     - Sistema de abas (Financeiro e Pessoas)
+     - Filtros de período com presets (Este Mês, Mês Passado, Este Ano)
+     - 4 cards de resumo: Total Entradas, Total Saídas, Saldo, Contas Pendentes ⭐
+     - Gráfico de linha: Fluxo de Caixa com 3 linhas (entradas/saídas/saldo) ⭐
+     - Gráfico de barras: Comparativo Entradas x Saídas ⭐
+     - Gráfico de pizza: Distribuição de Despesas por categoria ⭐
+     - Aba Pessoas com resumo (total/ativos/inativos)
+     - Recharts para visualizações responsivas
+     - RBAC completo: admin e finance acessam ⭐
+     - Loading states com skeleton
+     - Toast notifications com Sonner
+     - Layout otimizado para apresentação
+     - Integração completa com reports.service.ts e outros serviços
 
 7. **Usuários** (`app/(dashboard)/users/page.tsx`)
-   - ⚠️ **NÃO CRIADA** - Precisa criar
-   - **Visível apenas para admin**
-   - Funcionalidades esperadas:
-     - CRUD de usuários
-     - Gerenciamento de roles
-     - Ativar/desativar usuários
+   - ✅ **IMPLEMENTADA E FUNCIONANDO**
+   - Funcionalidades implementadas:
+     - CRUD completo de usuários do sistema
+     - Filtros funcionais: Nome, Email, Role, Status ⭐
+     - Badges de status (Ativo/Inativo)
+     - Modal de criação com validação Zod (nome, email, senha, confirmação, role)
+     - Modal de edição (senha opcional) ⭐
+     - Exclusão com confirmação (soft delete)
+     - Ativar/Desativar com confirmação ⭐
+     - Proteção: não pode excluir/desativar próprio usuário ⭐
+     - RBAC exclusivo: apenas admin acessa ⭐
+     - Empty states diferenciados
+     - Toast notifications com Sonner
+     - Integração completa com users.service.ts
 
 ---
 
@@ -264,13 +304,13 @@ Content-Type: application/json
 |--------|-------------|--------|-----------|
 | 🔐 Login | ✅ | ✅ | ✅ |
 | 📊 Dashboard | ✅ | ✅ | ✅ |
-| 👥 Membros | ✅ | ❌ | ❌ |
-| 🏢 Departamentos | ❌ | ❌ | ❌ |
+| 👥 Membros | ✅ | ✅ | ✅ |
+| 🏒 Departamentos | ✅ | ✅ | ✅ |
 | 💰 Caixa | ✅ | ✅ | ✅ |
 | 💳 Contas a Pagar | ✅ | ✅ | ✅ |
 | 💵 Contas a Receber | ✅ | ✅ | ✅ |
-| 📈 Relatórios | ✅ | ❌ | ❌ |
-| 👤 Usuários | ❌ | ❌ | ❌ |
+| 📈 Relatórios | ✅ | ✅ | ✅ |
+| 👤 Usuários | ✅ | ✅ | ✅ |
 
 **Legenda:**
 - ✅ = Implementado e funcionando
@@ -291,14 +331,14 @@ gerencia_church_ft/
 │   │   ├── layout.tsx                      ✅ FUNCIONANDO
 │   │   ├── dashboard/
 │   │   │   └── page.tsx                    ✅ FUNCIONANDO
-│   │   ├── members/                        ❌ NÃO CRIADO
-│   │   ├── departments/                    ❌ NÃO CRIADO
+│   │   ├── members/                        ✅ FUNCIONANDO
+│   │   ├── departments/                    ✅ FUNCIONANDO
 │   │   ├── finances/
 │   │   │   ├── cash-flows/                 ✅ FUNCIONANDO
 │   │   │   ├── accounts-payable/           ✅ FUNCIONANDO
 │   │   │   └── accounts-receivable/        ✅ FUNCIONANDO
-│   │   ├── reports/                        ❌ NÃO CRIADO
-│   │   └── users/                          ❌ NÃO CRIADO
+│   │   ├── reports/                        ✅ FUNCIONANDO
+│   │   └── users/                          ✅ FUNCIONANDO
 │   ├── globals.css                         ✅ CONFIGURADO
 │   ├── layout.tsx                          ✅ FUNCIONANDO
 │   └── page.tsx                            ✅ REDIRECT LOGIN
@@ -323,8 +363,10 @@ gerencia_church_ft/
 │   ├── api.ts                              ✅ CONFIGURADO
 │   ├── auth.service.ts                     ✅ FUNCIONANDO
 │   ├── members.service.ts                  ✅ PRONTO
+│   ├── departments.service.ts              ✅ PRONTO
 │   ├── finance.service.ts                  ✅ PRONTO
-│   └── reports.service.ts                  ✅ FUNCIONANDO
+│   ├── reports.service.ts                  ✅ FUNCIONANDO
+│   └── users.service.ts                    ✅ PRONTO
 │
 ├── hooks/
 │   ├── use-auth.ts                         ✅ FUNCIONANDO
@@ -408,13 +450,21 @@ Abra: `http://localhost:3001`
    - Exclusão apenas de movimentações manuais
    - Integração com API
 
-4. **Página de Membros**
-   - Listagem com tabela
-   - Formulário de criação/edição
-   - Busca e filtros
-   - Integração com API
+4. ~~**Página de Membros**~~ ✅ **CONCLUÍDA**
+   - Listagem com tabela e ordenação
+   - Formulários de criação/edição com validação Zod
+   - Filtros por nome, status e telefone
+   - RBAC (admin e secretary editam, outros apenas visualizam)
+   - Integração completa com API
 
-5. **Página de Relatórios**
+5. ~~**Página de Departamentos**~~ ✅ **CONCLUÍDA**
+   - Listagem com tabela e ordenação
+   - Formulários de criação/edição com validação Zod
+   - Filtros por nome e status
+   - RBAC (admin e secretary editam, outros apenas visualizam)
+   - Integração completa com API
+
+6. **Página de Relatórios**
    - Filtros de data
    - Múltiplos tipos de relatório
    - Visualização de dados
@@ -462,21 +512,25 @@ Abra: `http://localhost:3001`
 - [x] Contas a Pagar (completa com marcar como pago)
 - [x] Contas a Receber (completa com marcar como recebido)
 - [x] Fluxo de Caixa (completa com filtros e cards de resumo)
+- [x] Membros (completa com CRUD, filtros e RBAC granular)
+- [x] Departamentos (completa com CRUD e filtros)
+- [x] Página de Relatórios (completa com gráficos e múltiplas visualizações)
+- [x] Página de Usuários (completa com CRUD e RBAC exclusivo admin) 🎉
 - [x] Toast notifications com Sonner
 - [x] Componente StatusBadge reutilizável
 - [x] TypeScript enum para AccountStatus
 
-### Falta Implementar ❌
-- [ ] Página de Membros
-- [ ] Página de Departamentos
+### 🎉 CORE COMPLETO - Falta Implementar (Melhorias Futuras) ❌
+- [x] Página de Membros
+- [x] Página de Departamentos
 - [x] Página de Fluxo de Caixa
 - [x] Página de Contas a Pagar
 - [x] Página de Contas a Receber
-- [ ] Página de Relatórios
-- [ ] Página de Usuários
-- [ ] Gráficos financeiros
-- [ ] Sistema de notificações
-- [ ] Exportação de relatórios
+- [x] Página de Relatórios
+- [x] Página de Usuários
+- [ ] Gráficos financeiros avançados
+- [ ] Sistema de notificações em tempo real
+- [ ] Exportação de relatórios (PDF/Excel)
 
 ---
 
@@ -492,13 +546,15 @@ Abra: `http://localhost:3001`
 | React Hook Form | Latest | Formulários |
 | Zod | Latest | Validação |
 | Lucide React | Latest | Ícones |
+| Recharts | Latest | Gráficos |
 
 ---
 
-**Status do Projeto**: 🟡 **Em Desenvolvimento**  
-**Páginas Funcionais**: 5/9 (56%) - **+11% de progresso**  
+**Status do Projeto**: � **CORE COMPLETO - PRONTO PARA USO!**  
+**Páginas Funcionais**: 9/9 (100%) 🎉 - **PROJETO CORE COMPLETO!**  
 **Módulo Financeiro**: 🟢 **100% Completo** (Caixa, Contas a Pagar, Contas a Receber)  
-**Serviços API**: 5/5 (100%)  
+**Módulo de Pessoas**: 🟢 **100% Completo** (Membros, Departamentos)  
+**Serviços API**: 7/7 (100%) - usersService adicionado  
 **Componentes Base**: 100%  
 
 **Última Atualização**: 09 de Janeiro de 2026

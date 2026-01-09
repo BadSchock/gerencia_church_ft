@@ -36,11 +36,31 @@ export function usePermissions() {
     return hasRole([UserRole.admin, UserRole.finance]);
   };
 
+  const canAccessMembers = (): boolean => {
+    return hasRole([UserRole.admin, UserRole.finance, UserRole.leader, UserRole.secretary]);
+  };
+
+  const canEditMembers = (): boolean => {
+    return hasRole([UserRole.admin, UserRole.secretary]);
+  };
+
+  const canAccessDepartments = (): boolean => {
+    return hasRole([UserRole.admin, UserRole.finance, UserRole.leader, UserRole.secretary]);
+  };
+
+  const canEditDepartments = (): boolean => {
+    return hasRole([UserRole.admin, UserRole.secretary]);
+  };
+
   return {
     getUserRole,
     hasRole,
     canAccessFinance,
     canAccessUsers,
     canAccessReports,
+    canAccessMembers,
+    canEditMembers,
+    canAccessDepartments,
+    canEditDepartments,
   };
 }

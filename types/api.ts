@@ -50,6 +50,7 @@ export interface Member {
   phone?: string;
   email?: string;
   photo?: string;
+  details?: string;
   status: MemberStatus;
   created_at: string;
   updated_at: string;
