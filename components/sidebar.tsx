@@ -14,12 +14,18 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePermissions } from '@/hooks/use-permissions';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export function Sidebar() {
   const pathname = usePathname();
   const { canAccessFinance, canAccessUsers, canAccessReports } = usePermissions();
   const [isFinanceOpen, setIsFinanceOpen] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Fix hydration mismatch - só renderiza permissões após montar no cliente
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const menuItems = [
     {
@@ -43,7 +49,7 @@ export function Sidebar() {
     {
       name: 'Financeiro',
       icon: DollarSign,
-      show: canAccessFinance(),
+      show: isMounted ? canAccessFinance() : false,
       submenu: [
         { name: 'Caixa', href: '/finances/cash-flows' },
         { name: 'Contas a Pagar', href: '/finances/accounts-payable' },
@@ -54,13 +60,13 @@ export function Sidebar() {
       name: 'Relatórios',
       href: '/reports',
       icon: TrendingUp,
-      show: canAccessReports(),
+      show: isMounted ? canAccessReports() : false,
     },
     {
       name: 'Usuários',
       href: '/users',
       icon: UserCog,
-      show: canAccessUsers(),
+      show: isMounted ? canAccessUsers() : false,
     },
   ];
 
