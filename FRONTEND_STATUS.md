@@ -58,6 +58,15 @@ Frontend desenvolvido em **Next.js 14** com **TypeScript**, **Tailwind CSS** e *
 - ✅ Dialog
 - ✅ Select
 - ✅ Dropdown Menu
+- ✅ Sonner (toast notifications)
+
+#### Componentes Personalizados
+- ✅ **StatusBadge** (`components/finance/status-badge.tsx`)
+  - Componente reutilizável para status de contas financeiras
+  - Suporta type prop: 'payable' | 'receivable'
+  - AccountStatus type: 'pending' | 'paid' | 'overdue' | 'cancelled'
+  - Badges coloridos (verde/amarelo/vermelho/cinza)
+  - Usado em Contas a Pagar e Contas a Receber
 
 ### 📡 5. Serviços de API
 
@@ -159,14 +168,21 @@ As seguintes rotas foram **criadas no sistema de roteamento** mas ainda precisam
      - CRUD completo
      - Associação com funções
 
-3. **Financeiro - Caixa** (`app/(dashboard)/finances/cash-flows/page.tsx`)
-   - ⚠️ **NÃO CRIADA** - Precisa criar
-   - Funcionalidades esperadas:
-     - Tabela de movimentações
-     - Filtro por data
-     - Filtro por tipo (entrada/saída)
-     - Saldo atual destacado
-     - Botão "Nova Movimentação"
+3. **Financeiro - Fluxo de Caixa** (`app/(dashboard)/finances/cash-flows/page.tsx`)
+   - ✅ **IMPLEMENTADA E FUNCIONANDO**
+   - Funcionalidades implementadas:
+     - 3 cards de resumo: Saldo Atual, Total Entradas, Total Saídas ⭐
+     - Tabela de movimentações com todas as colunas especificadas
+     - Filtros funcionais: Tipo (entrada/saída), Descrição (texto), Data Inicial e Final ⭐
+     - Badges visuais para Tipo (verde/vermelho) e Origem (automática/manual) ⭐
+     - Modal de nova movimentação com validação Zod
+     - Exclusão apenas de movimentações manuais (automáticas protegidas) ⭐
+     - Ordenação por data (mais recente primeiro)
+     - Botão "Limpar Filtros" quando filtros ativos
+     - Integração completa com finance.service.ts
+     - Toast notifications com Sonner
+     - RBAC (admin, finance)
+     - Empty state diferenciado (sem dados vs filtros sem resultado)
 
 4. **Financeiro - Contas a Pagar** (`app/(dashboard)/finances/accounts-payable/page.tsx`)
    - ✅ **IMPLEMENTADA E FUNCIONANDO**
@@ -181,12 +197,17 @@ As seguintes rotas foram **criadas no sistema de roteamento** mas ainda precisam
      - Integração completa com finance.service.ts
 
 5. **Financeiro - Contas a Receber** (`app/(dashboard)/finances/accounts-receivable/page.tsx`)
-   - ⚠️ **NÃO CRIADA** - Precisa criar
-   - Funcionalidades esperadas:
-     - Listagem de contas
-     - Status visual
-     - Botão "Marcar como Recebido" ⭐
-     - Modal de nova conta
+   - ✅ **IMPLEMENTADA E FUNCIONANDO**
+   - Funcionalidades implementadas:
+     - Listagem de contas em tabela
+     - Status visual (pendente/recebido/vencido/cancelado) com badges coloridos
+     - Botão "Marcar como Recebido" com modal de confirmação ⭐
+     - Modal de nova conta com validação Zod
+     - Ordenação automática por vencimento
+     - Soft delete com confirmação
+     - Detecção automática de contas vencidas
+     - Integração completa com finance.service.ts
+     - Toast notifications com Sonner
 
 6. **Relatórios** (`app/(dashboard)/reports/page.tsx`)
    - ⚠️ **NÃO CRIADA** - Precisa criar
@@ -245,9 +266,9 @@ Content-Type: application/json
 | 📊 Dashboard | ✅ | ✅ | ✅ |
 | 👥 Membros | ✅ | ❌ | ❌ |
 | 🏢 Departamentos | ❌ | ❌ | ❌ |
-| 💰 Caixa | ✅ | ❌ | ❌ |
+| 💰 Caixa | ✅ | ✅ | ✅ |
 | 💳 Contas a Pagar | ✅ | ✅ | ✅ |
-| 💵 Contas a Receber | ✅ | ❌ | ❌ |
+| 💵 Contas a Receber | ✅ | ✅ | ✅ |
 | 📈 Relatórios | ✅ | ❌ | ❌ |
 | 👤 Usuários | ❌ | ❌ | ❌ |
 
@@ -273,9 +294,9 @@ gerencia_church_ft/
 │   │   ├── members/                        ❌ NÃO CRIADO
 │   │   ├── departments/                    ❌ NÃO CRIADO
 │   │   ├── finances/
-│   │   │   ├── cash-flows/                 ❌ NÃO CRIADO
+│   │   │   ├── cash-flows/                 ✅ FUNCIONANDO
 │   │   │   ├── accounts-payable/           ✅ FUNCIONANDO
-│   │   │   └── accounts-receivable/        ❌ NÃO CRIADO
+│   │   │   └── accounts-receivable/        ✅ FUNCIONANDO
 │   │   ├── reports/                        ❌ NÃO CRIADO
 │   │   └── users/                          ❌ NÃO CRIADO
 │   ├── globals.css                         ✅ CONFIGURADO
@@ -291,7 +312,10 @@ gerencia_church_ft/
 │   │   ├── table.tsx
 │   │   ├── dialog.tsx
 │   │   ├── select.tsx
-│   │   └── dropdown-menu.tsx
+│   │   ├── dropdown-menu.tsx
+│   │   └── sonner.tsx
+│   ├── finance/
+│   │   └── status-badge.tsx                ✅ REUTILIZÁVEL
 │   ├── sidebar.tsx                         ✅ FUNCIONANDO
 │   └── header.tsx                          ✅ FUNCIONANDO
 │
@@ -371,19 +395,24 @@ Abra: `http://localhost:3001`
    - Botão "Marcar como Pago" com confirmação
    - Integração com API
 
-2. **Página de Contas a Receber**
+2. ~~**Página de Contas a Receber**~~ ✅ **CONCLUÍDA**
    - Similar à Contas a Pagar
    - Botão "Marcar como Recebido"
+   - Integração com API
 
-3. **Página de Membros**
+3. ~~**Página de Fluxo de Caixa**~~ ✅ **CONCLUÍDA**
+   - Cards de resumo (Saldo, Entradas, Saídas)
+   - Visualização de entradas/saídas
+   - Filtros por data, tipo e descrição
+   - Badges visuais (tipo e origem)
+   - Exclusão apenas de movimentações manuais
+   - Integração com API
+
+4. **Página de Membros**
    - Listagem com tabela
    - Formulário de criação/edição
    - Busca e filtros
    - Integração com API
-
-4. **Páginas Financeiras - Caixa**
-   - Caixa (movimentações)
-   - Visualização de entradas/saídas
 
 5. **Página de Relatórios**
    - Filtros de data
@@ -392,30 +421,30 @@ Abra: `http://localhost:3001`
 
 ### 🟡 Prioridade Média
 
-4. **Página de Departamentos**
+6. **Página de Departamentos**
    - CRUD completo
    - Listagem
 
-5. **Página de Usuários**
+7. **Página de Usuários**
    - CRUD de usuários (apenas admin)
    - Gerenciamento de roles
 
 ### 🟢 Melhorias Futuras
 
-6. **Gráficos**
+8. **Gráficos**
    - Instalar Chart.js ou Recharts
    - Gráficos de fluxo financeiro
 
-7. **Exportação de Relatórios**
+9. **Exportação de Relatórios**
    - PDF
    - Excel
 
-8. **Notificações**
-   - Sistema de notificações em tempo real
-   - Alertas de contas vencidas
+10. **Notificações**
+    - Sistema de notificações em tempo real
+    - Alertas de contas vencidas
 
-9. **Dark Mode**
-   - Toggle de tema claro/escuro
+11. **Dark Mode**
+    - Toggle de tema claro/escuro
 
 ---
 
@@ -431,13 +460,18 @@ Abra: `http://localhost:3001`
 - [x] Controle de permissões (RBAC)
 - [x] Tema personalizado (#001529)
 - [x] Contas a Pagar (completa com marcar como pago)
+- [x] Contas a Receber (completa com marcar como recebido)
+- [x] Fluxo de Caixa (completa com filtros e cards de resumo)
+- [x] Toast notifications com Sonner
+- [x] Componente StatusBadge reutilizável
+- [x] TypeScript enum para AccountStatus
 
 ### Falta Implementar ❌
 - [ ] Página de Membros
 - [ ] Página de Departamentos
-- [ ] Página de Caixa
+- [x] Página de Fluxo de Caixa
 - [x] Página de Contas a Pagar
-- [ ] Página de Contas a Receber
+- [x] Página de Contas a Receber
 - [ ] Página de Relatórios
 - [ ] Página de Usuários
 - [ ] Gráficos financeiros
@@ -462,7 +496,8 @@ Abra: `http://localhost:3001`
 ---
 
 **Status do Projeto**: 🟡 **Em Desenvolvimento**  
-**Páginas Funcionais**: 3/9 (33%)  
+**Páginas Funcionais**: 5/9 (56%) - **+11% de progresso**  
+**Módulo Financeiro**: 🟢 **100% Completo** (Caixa, Contas a Pagar, Contas a Receber)  
 **Serviços API**: 5/5 (100%)  
 **Componentes Base**: 100%  
 

@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Plus, Trash2, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuth } from '@/hooks/use-auth';
 import { usePermissions } from '@/hooks/use-permissions';
 import { financeService } from '@/services/finance.service';
@@ -30,6 +31,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { StatusBadge, AccountStatus } from '@/components/finance/status-badge';
 
 // Schema de validação Zod
 const accountPayableSchema = z.object({
@@ -44,30 +46,6 @@ const accountPayableSchema = z.object({
 });
 
 type AccountPayableFormData = z.infer<typeof accountPayableSchema>;
-
-// Badge de status
-function StatusBadge({ status }: { status: string }) {
-  const statusConfig = {
-    pending: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800' },
-    paid: { label: 'Pago', color: 'bg-green-100 text-green-800' },
-    overdue: { label: 'Vencido', color: 'bg-red-100 text-red-800' },
-    cancelled: { label: 'Cancelado', color: 'bg-gray-100 text-gray-800' },
-  };
-
-  const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
-
-  return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
-      {config.label}
-    </span>
-  );
-}
-
-// Toast simples
-function showToast(message: string) {
-  // Implementação simples - pode ser substituída por biblioteca de toast
-  alert(message);
-}
 
 export default function AccountsPayablePage() {
   const router = useRouter();
@@ -105,6 +83,13 @@ export default function AccountsPayablePage() {
     loadAccounts();
   }, []);
 
+  // Helper para resetar seleção e fechar modais
+  function resetSelection() {
+    setSelectedAccount(null);
+    setConfirmPayModalOpen(false);
+    setConfirmDeleteModalOpen(false);
+  }
+
   async function loadAccounts() {
     try {
       setLoading(true);
@@ -114,7 +99,7 @@ export default function AccountsPayablePage() {
       setAccounts(sorted);
     } catch (error) {
       console.error('Erro ao carregar contas a pagar:', error);
-      showToast('Erro ao carregar contas a pagar');
+      toast.error('Erro ao carregar contas a pagar');
     } finally {
       setLoading(false);
     }
@@ -129,13 +114,13 @@ export default function AccountsPayablePage() {
         amount: Number(data.amount),
         due_date: data.due_date,
       });
-      showToast('Conta criada com sucesso');
+      toast.success('Conta criada com sucesso');
       setCreateModalOpen(false);
       reset();
       await loadAccounts();
     } catch (error) {
       console.error('Erro ao criar conta:', error);
-      showToast('Erro ao criar conta a pagar');
+      toast.error('Erro ao criar conta a pagar');
     } finally {
       setActionLoading(null);
     }
@@ -148,13 +133,12 @@ export default function AccountsPayablePage() {
     try {
       setActionLoading(`pay-${selectedAccount.id}`);
       await financeService.markAsPaid(selectedAccount.id);
-      showToast('Conta marcada como paga e registrada no caixa');
-      setConfirmPayModalOpen(false);
-      setSelectedAccount(null);
+      toast.success('Conta marcada como paga e registrada no caixa');
+      resetSelection();
       await loadAccounts();
     } catch (error) {
       console.error('Erro ao marcar como pago:', error);
-      showToast('Erro ao marcar conta como paga');
+      toast.error('Erro ao marcar conta como paga');
     } finally {
       setActionLoading(null);
     }
@@ -167,13 +151,12 @@ export default function AccountsPayablePage() {
     try {
       setActionLoading(`delete-${selectedAccount.id}`);
       await financeService.deleteAccountPayable(selectedAccount.id);
-      showToast('Conta removida com sucesso');
-      setConfirmDeleteModalOpen(false);
-      setSelectedAccount(null);
+      toast.success('Conta removida com sucesso');
+      resetSelection();
       await loadAccounts();
     } catch (error) {
       console.error('Erro ao excluir conta:', error);
-      showToast('Erro ao remover conta');
+      toast.error('Erro ao remover conta');
     } finally {
       setActionLoading(null);
     }
@@ -293,9 +276,9 @@ export default function AccountsPayablePage() {
               </TableHeader>
               <TableBody>
                 {accounts.map((account) => {
-                  const displayStatus = isOverdue(account.due_date, account.status)
+                  const displayStatus: AccountStatus = isOverdue(account.due_date, account.status)
                     ? 'overdue'
-                    : account.status;
+                    : (account.status as AccountStatus);
 
                   return (
                     <TableRow key={account.id}>
@@ -303,7 +286,7 @@ export default function AccountsPayablePage() {
                       <TableCell>{formatCurrency(account.amount)}</TableCell>
                       <TableCell>{formatDate(account.due_date)}</TableCell>
                       <TableCell>
-                        <StatusBadge status={displayStatus} />
+                        <StatusBadge status={displayStatus} type="payable" />
                       </TableCell>
                       <TableCell>{renderActions(account)}</TableCell>
                     </TableRow>
@@ -406,10 +389,7 @@ export default function AccountsPayablePage() {
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => {
-                setConfirmPayModalOpen(false);
-                setSelectedAccount(null);
-              }}
+              onClick={resetSelection}
               disabled={actionLoading !== null}
             >
               Cancelar
@@ -448,10 +428,7 @@ export default function AccountsPayablePage() {
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => {
-                setConfirmDeleteModalOpen(false);
-                setSelectedAccount(null);
-              }}
+              onClick={resetSelection}
               disabled={actionLoading !== null}
             >
               Cancelar
