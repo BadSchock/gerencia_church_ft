@@ -85,6 +85,7 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
 
   // Filtros
   const [filterName, setFilterName] = useState('');
@@ -127,6 +128,7 @@ export default function UsersPage() {
 
   // Verificar permissões
   useEffect(() => {
+    setIsMounted(true);
     if (!canAccessUsers()) {
       toast.error('Você não tem permissão para acessar esta página');
       router.push('/dashboard');
@@ -366,7 +368,7 @@ export default function UsersPage() {
     return date.toLocaleDateString('pt-BR');
   };
 
-  if (!canAccessUsers()) {
+  if (!isMounted || !canAccessUsers()) {
     return null;
   }
 

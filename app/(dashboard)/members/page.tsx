@@ -37,6 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
 
 // Schema de validação Zod
 const memberSchema = z.object({
@@ -69,6 +70,8 @@ export default function MembersPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [birthDate, setBirthDate] = useState<Date | undefined>();
+  const [editBirthDate, setEditBirthDate] = useState<Date | undefined>();
 
   // Form
   const {
@@ -163,6 +166,7 @@ export default function MembersPage() {
       cpf: '',
       details: '',
     });
+    setBirthDate(undefined);
     setCreateModalOpen(true);
   }
 
@@ -177,6 +181,12 @@ export default function MembersPage() {
       details: (member as any).details || '',
       cpf: member.cpf || '',
     });
+    // Setar a data no DatePicker
+    if (member.birth_date) {
+      setEditBirthDate(new Date(member.birth_date));
+    } else {
+      setEditBirthDate(undefined);
+    }
     setEditModalOpen(true);
   }
 
@@ -494,7 +504,14 @@ export default function MembersPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="birth_date">Data de Nascimento</Label>
-                <Input id="birth_date" type="date" {...register('birth_date')} />
+                <DatePicker
+                  date={birthDate}
+                  onDateChange={(date) => {
+                    setBirthDate(date);
+                    setValue('birth_date', date ? date.toISOString().split('T')[0] : '');
+                  }}
+                  placeholder="Selecione a data de nascimento"
+                />
               </div>
 
               <div className="space-y-2">
@@ -587,7 +604,14 @@ export default function MembersPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="edit-birth_date">Data de Nascimento</Label>
-                <Input id="edit-birth_date" type="date" {...register('birth_date')} />
+                <DatePicker
+                  date={editBirthDate}
+                  onDateChange={(date) => {
+                    setEditBirthDate(date);
+                    setValue('birth_date', date ? date.toISOString().split('T')[0] : '');
+                  }}
+                  placeholder="Selecione a data de nascimento"
+                />
               </div>
 
               <div className="space-y-2">

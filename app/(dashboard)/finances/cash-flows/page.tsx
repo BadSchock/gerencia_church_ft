@@ -78,6 +78,8 @@ export default function CashFlowsPage() {
   const [filterText, setFilterText] = useState('');
   const [filterStartDate, setFilterStartDate] = useState('');
   const [filterEndDate, setFilterEndDate] = useState('');
+  const [filterPaymentMethod, setFilterPaymentMethod] = useState<string>('all');
+  const [filterOrigin, setFilterOrigin] = useState<string>('all');
 
   // Modais
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -113,7 +115,7 @@ export default function CashFlowsPage() {
   // Aplicar filtros
   useEffect(() => {
     applyFilters();
-  }, [cashFlows, filterType, filterText, filterStartDate, filterEndDate]);
+  }, [cashFlows, filterType, filterText, filterStartDate, filterEndDate, filterPaymentMethod, filterOrigin]);
 
   // Helper para resetar seleção e fechar modais
   function resetSelection() {
@@ -174,6 +176,20 @@ export default function CashFlowsPage() {
       );
     }
 
+    // Filtro por forma de pagamento
+    if (filterPaymentMethod !== 'all') {
+      filtered = filtered.filter((cf) => cf.payment_method === filterPaymentMethod);
+    }
+
+    // Filtro por origem
+    if (filterOrigin !== 'all') {
+      if (filterOrigin === 'manual') {
+        filtered = filtered.filter((cf) => !cf.origem);
+      } else if (filterOrigin === 'automatic') {
+        filtered = filtered.filter((cf) => cf.origem);
+      }
+    }
+
     setFilteredCashFlows(filtered);
   }
 
@@ -183,6 +199,8 @@ export default function CashFlowsPage() {
     setFilterText('');
     setFilterStartDate('');
     setFilterEndDate('');
+    setFilterPaymentMethod('all');
+    setFilterOrigin('all');
   }
 
   // Criar movimentação
@@ -260,27 +278,37 @@ export default function CashFlowsPage() {
 
   // Renderizar origem (manual ou automática)
   function renderOriginBadge(cashFlow: CashFlow) {
-    // Se tiver category, considerar automática (vinda de contas a pagar/receber)
-    const isAutomatic = cashFlow.category !== null && cashFlow.category !== undefined;
-    
-    if (isAutomatic) {
+    if (cashFlow.origem) {
       return (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-          ⚙️ Automática
+          {cashFlow.origem}
         </span>
       );
     }
     return (
       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-        ✍️ Manual
+        Manual
       </span>
     );
+  }
+
+  // Renderizar forma de pagamento
+  function renderPaymentMethod(method: string | null) {
+    if (!method) return '-';
+    const labels: Record<string, string> = {
+      PIX: 'PIX',
+      DINHEIRO: 'Dinheiro',
+      CARTAO_CREDITO: 'Cartão de Crédito',
+      CARTAO_DEBITO: 'Cartão de Débito',
+      TRANSFERENCIA: 'Transferência',
+    };
+    return labels[method] || method;
   }
 
   // Renderizar ações
   function renderActions(cashFlow: CashFlow) {
     // Permitir exclusão apenas de movimentações manuais
-    const isAutomatic = cashFlow.category !== null && cashFlow.category !== undefined;
+    const isAutomatic = cashFlow.origem !== null && cashFlow.origem !== undefined;
     
     if (isAutomatic) {
       return (
@@ -389,7 +417,7 @@ export default function CashFlowsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Tipo */}
             <div className="space-y-2">
               <Label>Tipo</Label>
@@ -415,6 +443,24 @@ export default function CashFlowsPage() {
               />
             </div>
 
+            {/* Forma de Pagamento */}
+            <div className="space-y-2">
+              <Label>Forma de Pagamento</Label>
+              <Select value={filterPaymentMethod} onValueChange={setFilterPaymentMethod}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="PIX">PIX</SelectItem>
+                  <SelectItem value="DINHEIRO">Dinheiro</SelectItem>
+                  <SelectItem value="CARTAO_CREDITO">Cartão de Crédito</SelectItem>
+                  <SelectItem value="CARTAO_DEBITO">Cartão de Débito</SelectItem>
+                  <SelectItem value="TRANSFERENCIA">Transferência</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Data Inicial */}
             <div className="space-y-2">
               <Label>Data Inicial</Label>
@@ -434,10 +480,25 @@ export default function CashFlowsPage() {
                 onChange={(e) => setFilterEndDate(e.target.value)}
               />
             </div>
+
+            {/* Origem */}
+            <div className="space-y-2">
+              <Label>Origem</Label>
+              <Select value={filterOrigin} onValueChange={setFilterOrigin}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="manual">Manual</SelectItem>
+                  <SelectItem value="automatic">Automática</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Botão Limpar Filtros */}
-          {(filterType !== 'all' || filterText || filterStartDate || filterEndDate) && (
+          {(filterType !== 'all' || filterText || filterStartDate || filterEndDate || filterPaymentMethod !== 'all' || filterOrigin !== 'all') && (
             <div className="mt-4">
               <Button variant="outline" onClick={clearFilters}>
                 Limpar Filtros
@@ -469,6 +530,7 @@ export default function CashFlowsPage() {
                   <TableHead>Descrição</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Valor</TableHead>
+                  <TableHead>Forma Pagamento</TableHead>
                   <TableHead>Origem</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
@@ -482,6 +544,7 @@ export default function CashFlowsPage() {
                     <TableCell className={cashFlow.type === 'entrada' ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
                       {cashFlow.type === 'entrada' ? '+' : '-'} {formatCurrency(cashFlow.amount)}
                     </TableCell>
+                    <TableCell>{renderPaymentMethod(cashFlow.payment_method)}</TableCell>
                     <TableCell>{renderOriginBadge(cashFlow)}</TableCell>
                     <TableCell>{renderActions(cashFlow)}</TableCell>
                   </TableRow>

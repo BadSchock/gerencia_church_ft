@@ -1,6 +1,8 @@
 import api from './api';
 import { Member } from '@/types/api';
 
+export type { Member };
+
 export const membersService = {
   async getAll(): Promise<Member[]> {
     const { data } = await api.get<Member[]>('/members');

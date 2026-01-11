@@ -73,6 +73,10 @@ export interface CashFlow {
   amount: number;
   date: string;
   category?: string;
+  payment_method?: string;
+  paid_at?: string;
+  received_by_user_id?: number;
+  origem?: string;
   created_by: number;
   created_at: string;
   updated_at: string;
@@ -86,6 +90,8 @@ export interface AccountPayable {
   due_date: string;
   paid_date?: string;
   status: PaymentStatus;
+  invoice_number?: string;
+  expense_category?: string;
   created_at: string;
   updated_at: string;
 }

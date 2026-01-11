@@ -14,6 +14,10 @@ export const authService = {
     if (typeof window !== 'undefined') {
       localStorage.setItem('access_token', data.accessToken);
       localStorage.setItem('refresh_token', data.refreshToken);
+      // Save user data
+      if (data.user) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
     }
     
     return data;
@@ -34,11 +38,23 @@ export const authService = {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user');
     }
   },
 
   isAuthenticated(): boolean {
     if (typeof window === 'undefined') return false;
     return !!localStorage.getItem('access_token');
+  },
+
+  getCurrentUser(): any | null {
+    if (typeof window === 'undefined') return null;
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return null;
+    try {
+      return JSON.parse(userStr);
+    } catch {
+      return null;
+    }
   },
 };

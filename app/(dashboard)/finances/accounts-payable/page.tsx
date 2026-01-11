@@ -29,6 +29,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { StatusBadge, AccountStatus } from '@/components/finance/status-badge';
@@ -43,6 +50,8 @@ const accountPayableSchema = z.object({
       message: 'Valor deve ser maior que zero',
     }),
   due_date: z.string().min(1, 'Data de vencimento é obrigatória'),
+  invoice_number: z.string().optional(),
+  expense_category: z.enum(['SALARIO', 'ALUGUEL', 'ENERGIA', 'AGUA', 'INTERNET', 'MATERIAL', 'SERVICO', 'MANUTENCAO', 'OUTROS']).optional(),
 });
 
 type AccountPayableFormData = z.infer<typeof accountPayableSchema>;
@@ -54,6 +63,7 @@ export default function AccountsPayablePage() {
   const [accounts, setAccounts] = useState<AccountPayable[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   // Modais
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -67,6 +77,7 @@ export default function AccountsPayablePage() {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm<AccountPayableFormData>({
     resolver: zodResolver(accountPayableSchema),
   });
@@ -113,9 +124,12 @@ export default function AccountsPayablePage() {
         description: data.description,
         amount: Number(data.amount),
         due_date: data.due_date,
+        invoice_number: data.invoice_number,
+        expense_category: data.expense_category,
       });
       toast.success('Conta criada com sucesso');
       setCreateModalOpen(false);
+      setSelectedFiles([]);
       reset();
       await loadAccounts();
     } catch (error) {
@@ -173,6 +187,23 @@ export default function AccountsPayablePage() {
   // Formatar data
   function formatDate(date: Date | string) {
     return new Intl.DateTimeFormat('pt-BR').format(new Date(date));
+  }
+
+  // Renderizar categoria de despesa
+  function renderExpenseCategory(category: string | null) {
+    if (!category) return '-';
+    const labels: Record<string, string> = {
+      SALARIO: 'Salário',
+      ALUGUEL: 'Aluguel',
+      ENERGIA: 'Energia',
+      AGUA: 'Água',
+      INTERNET: 'Internet',
+      MATERIAL: 'Material',
+      SERVICO: 'Serviço',
+      MANUTENCAO: 'Manutenção',
+      OUTROS: 'Outros',
+    };
+    return labels[category] || category;
   }
 
   // Verificar se está vencido
@@ -268,6 +299,8 @@ export default function AccountsPayablePage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Descrição</TableHead>
+                  <TableHead>Nº Nota</TableHead>
+                  <TableHead>Categoria</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Data de Vencimento</TableHead>
                   <TableHead>Status</TableHead>
@@ -283,6 +316,8 @@ export default function AccountsPayablePage() {
                   return (
                     <TableRow key={account.id}>
                       <TableCell className="font-medium">{account.description}</TableCell>
+                      <TableCell>{account.invoice_number || '-'}</TableCell>
+                      <TableCell>{renderExpenseCategory(account.expense_category)}</TableCell>
                       <TableCell>{formatCurrency(account.amount)}</TableCell>
                       <TableCell>{formatDate(account.due_date)}</TableCell>
                       <TableCell>
@@ -319,6 +354,37 @@ export default function AccountsPayablePage() {
                 {errors.description && (
                   <p className="text-sm text-red-600">{errors.description.message}</p>
                 )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="invoice_number">Número da Nota Fiscal</Label>
+                <Input
+                  id="invoice_number"
+                  placeholder="Ex: NF-12345"
+                  {...register('invoice_number')}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="expense_category">Categoria de Despesa</Label>
+                <Select
+                  onValueChange={(value) => setValue('expense_category', value as any)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="SALARIO">Salário</SelectItem>
+                    <SelectItem value="ALUGUEL">Aluguel</SelectItem>
+                    <SelectItem value="ENERGIA">Energia</SelectItem>
+                    <SelectItem value="AGUA">Água</SelectItem>
+                    <SelectItem value="INTERNET">Internet</SelectItem>
+                    <SelectItem value="MATERIAL">Material</SelectItem>
+                    <SelectItem value="SERVICO">Serviço</SelectItem>
+                    <SelectItem value="MANUTENCAO">Manutenção</SelectItem>
+                    <SelectItem value="OUTROS">Outros</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
